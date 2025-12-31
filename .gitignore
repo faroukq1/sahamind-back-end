@@ -1,0 +1,79 @@
+# Python / FastAPI standard ignores
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments (most important!)
+.venv/
+venv/
+env/
+ENV/
+.env/
+.venv.bak/
+venv.bak/
+
+# Environment variables & secrets
+.env
+.env.local
+.env.development
+.env.production
+.env.example          # keep this if you want to share the template
+
+# Database (if you use SQLite for dev)
+*.db
+*.sqlite3
+*.sqlite
+
+# Logs & temp files
+*.log
+logs/
+app.log
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+test_*.db
+
+# IDE / Editor files (add yours if needed)
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store             # macOS
+Thumbs.db             # Windows
+
+# FastAPI / Uvicorn specific (sometimes generated)
+*.pid
+instance/
+.webassets-cache
+openapi.json          # if you don't want auto-generated docs in repo
+
+# Optional - if you use these later
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+.pyre/
+.pytype/
+cython_debug/

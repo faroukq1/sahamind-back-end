@@ -1,3 +1,4 @@
+# services/journal_service.py
 from sqlalchemy.orm import Session
 from models.journal import Journal
 from schemas.journal import JournalCreate, JournalUpdate
@@ -6,22 +7,35 @@ from sqlalchemy import func
 
 
 def add_note(db: Session, user_id: int, data: JournalCreate):
+    """Create a new journal entry"""
     journal = Journal(
         user_id=user_id,
         humor=data.humor,
         title=data.title,
-        content=data.content
+        content=data.content,
+        is_pinned=data.is_pinned,  # Add this
+        color=data.color  # Add this
     )
     return journal_repo.create(db, journal)
 
 
-
 def get_user_notes(db: Session, user_id: int):
+    """Get all notes for a user (ordered by pinned first)"""
     return journal_repo.get_by_user(db, user_id)
 
 
+def get_pinned_notes(db: Session, user_id: int):
+    """Get only pinned notes for a user"""
+    return (
+        db.query(Journal)
+        .filter(Journal.user_id == user_id, Journal.is_pinned == True)
+        .order_by(Journal.created_at.desc())
+        .all()
+    )
+
 
 def delete_note(db: Session, journal_id: int):
+    """Delete a journal entry"""
     journal = journal_repo.get_one(db, journal_id)
     if not journal:
         return False
@@ -31,6 +45,7 @@ def delete_note(db: Session, journal_id: int):
 
 
 def update_note(db: Session, journal_id: int, data: JournalUpdate):
+    """Update a journal entry"""
     journal = journal_repo.get_one(db, journal_id)
     if not journal:
         return None
@@ -42,7 +57,30 @@ def update_note(db: Session, journal_id: int, data: JournalUpdate):
     return journal
 
 
+def toggle_pin(db: Session, journal_id: int):
+    """Toggle pin status of a note"""
+    journal = journal_repo.get_one(db, journal_id)
+    if not journal:
+        return None
+    
+    journal.is_pinned = not journal.is_pinned
+    journal_repo.update(db)
+    return journal
+
+
+def update_color(db: Session, journal_id: int, color: str):
+    """Update the color of a note"""
+    journal = journal_repo.get_one(db, journal_id)
+    if not journal:
+        return None
+    
+    journal.color = color
+    journal_repo.update(db)
+    return journal
+
+
 def humor_report(db: Session, user_id: int):
+    """Generate humor statistics grouped by date"""
     rows = (
         db.query(
             Journal.humor,
@@ -63,4 +101,3 @@ def humor_report(db: Session, user_id: int):
         })
 
     return report
-

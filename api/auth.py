@@ -23,7 +23,7 @@ def signup_route(data: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login")
 def login_route(data: UserLogin, db: Session = Depends(get_db)):
     try:
-        token = login(db, data.email, data.password)
-        return {"access_token": token, "token_type": "bearer"}
+        data = login(db, data.email, data.password)
+        return data
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))

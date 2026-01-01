@@ -78,6 +78,11 @@ def update_color(db: Session, journal_id: int, color: str):
     journal_repo.update(db)
     return journal
 
+# services/journal_service.py
+def get_note_by_id(db: Session, journal_id: int):
+    """Get a single journal entry by ID"""
+    return db.query(Journal).filter(Journal.id == journal_id).first()
+
 
 def humor_report(db: Session, user_id: int):
     """Generate humor statistics grouped by date"""

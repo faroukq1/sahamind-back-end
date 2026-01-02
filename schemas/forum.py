@@ -1,7 +1,8 @@
 # schemas/forum.py
-from pydantic import BaseModel
 from typing import List, Optional
+from pydantic import BaseModel
 from datetime import datetime
+
 
 # Forum Schemas
 class ForumCreate(BaseModel):
@@ -80,8 +81,7 @@ class ReportContent(BaseModel):
     reason: str
 
 
-from pydantic import BaseModel
-from datetime import datetime
+
 
 class PostOut(BaseModel):
     id: int

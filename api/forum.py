@@ -16,6 +16,54 @@ from schemas.forum import (
 router = APIRouter(prefix="/forums", tags=["forums"])
 
 # =====================================================
+# FORUMS
+# =====================================================
+
+@router.get("/", response_model=List[ForumResponse])
+def get_all_forums(db: Session = Depends(get_db)):
+    """
+    Get all forums with their metadata.
+    Returns list of forums with post count and moderator count.
+    """
+    forums = forum_repo.get_all_forums(db)
+    
+    result = []
+    for forum in forums:
+        result.append({
+            "id": forum.id,
+            "name": forum.name,
+            "description": forum.description,
+            "thematic": forum.thematic,
+            "created_at": forum.created_at,
+            "is_active": forum.is_active,
+            "moderator_count": forum_repo.get_moderator_count(db, forum.id),
+            "post_count": forum_repo.get_post_count_for_forum(db, forum.id)
+        })
+    
+    return result
+
+
+@router.get("/{forum_id}", response_model=ForumResponse)
+def get_forum_by_id(forum_id: int, db: Session = Depends(get_db)):
+    """
+    Get a single forum by ID with metadata.
+    """
+    forum = forum_repo.get_forum_by_id(db, forum_id)
+    if not forum:
+        raise HTTPException(status_code=404, detail="Forum not found")
+    
+    return {
+        "id": forum.id,
+        "name": forum.name,
+        "description": forum.description,
+        "thematic": forum.thematic,
+        "created_at": forum.created_at,
+        "is_active": forum.is_active,
+        "moderator_count": forum_repo.get_moderator_count(db, forum.id),
+        "post_count": forum_repo.get_post_count_for_forum(db, forum.id)
+    }
+
+# =====================================================
 # POSTS
 # =====================================================
 
@@ -25,7 +73,6 @@ def create_post(data: PostCreate, db: Session = Depends(get_db)):
     Create a post.
     user_id is provided in the request body (NO auth dependency).
     """
-
     post = forum_repo.create_post(
         db=db,
         forum_id=data.forum_id,
@@ -51,6 +98,7 @@ def create_post(data: PostCreate, db: Session = Depends(get_db)):
 
 @router.get("/{forum_id}/posts", response_model=List[PostResponse])
 def get_posts_for_forum(forum_id: int, db: Session = Depends(get_db)):
+    """Get all posts for a specific forum"""
     posts = forum_repo.get_posts_by_forum(db, forum_id)
 
     result = []
@@ -78,6 +126,7 @@ def update_post(
     data: PostUpdate,
     db: Session = Depends(get_db)
 ):
+    """Update a post (owner only)"""
     post = forum_repo.get_post_by_id(db, post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
@@ -108,6 +157,7 @@ def update_post(
 
 @router.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(post_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Delete a post (owner only)"""
     post = forum_repo.get_post_by_id(db, post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
@@ -119,11 +169,34 @@ def delete_post(post_id: int, user_id: int, db: Session = Depends(get_db)):
 
 
 # =====================================================
+# LIKES - POSTS
+# =====================================================
+
+@router.post("/posts/{post_id}/like")
+def toggle_post_like(post_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Toggle like on a post"""
+    post = forum_repo.get_post_by_id(db, post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    liked = forum_repo.toggle_post_like(db, post_id, user_id)
+    new_count = forum_repo.get_post_like_count(db, post_id)
+    
+    return {
+        "liked": liked,
+        "like_count": new_count,
+        "post_id": post_id,
+        "forum_id": post.forum_id,
+        "message": "Post liked" if liked else "Post unliked"
+    }
+
+# =====================================================
 # RESPONSES
 # =====================================================
 
 @router.post("/responses", response_model=ResponseResponse, status_code=status.HTTP_201_CREATED)
 def create_response(data: ResponseCreate, db: Session = Depends(get_db)):
+    """Create a response/comment on a post"""
     response = forum_repo.create_response(
         db=db,
         post_id=data.post_id,
@@ -146,6 +219,7 @@ def create_response(data: ResponseCreate, db: Session = Depends(get_db)):
 
 @router.get("/posts/{post_id}/responses", response_model=List[ResponseResponse])
 def get_responses(post_id: int, db: Session = Depends(get_db)):
+    """Get all responses for a specific post"""
     responses = forum_repo.get_responses_by_post(db, post_id)
 
     return [
@@ -170,6 +244,7 @@ def update_response(
     data: ResponseUpdate,
     db: Session = Depends(get_db)
 ):
+    """Update a response (owner only)"""
     response = forum_repo.get_response_by_id(db, response_id)
     if not response:
         raise HTTPException(status_code=404, detail="Response not found")
@@ -193,6 +268,7 @@ def update_response(
 
 @router.delete("/responses/{response_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_response(response_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Delete a response (owner only)"""
     response = forum_repo.get_response_by_id(db, response_id)
     if not response:
         raise HTTPException(status_code=404, detail="Response not found")
@@ -204,11 +280,34 @@ def delete_response(response_id: int, user_id: int, db: Session = Depends(get_db
 
 
 # =====================================================
+# LIKES - RESPONSES
+# =====================================================
+
+@router.post("/responses/{response_id}/like")
+def toggle_response_like(response_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Toggle like on a response"""
+    response = forum_repo.get_response_by_id(db, response_id)
+    if not response:
+        raise HTTPException(status_code=404, detail="Response not found")
+    
+    liked = forum_repo.toggle_response_like(db, response_id, user_id)
+    new_count = forum_repo.get_response_like_count(db, response_id)
+    
+    return {
+        "liked": liked,
+        "like_count": new_count,
+        "response_id": response_id,
+        "post_id": response.post_id,
+        "message": "Response liked" if liked else "Response unliked"
+    }
+
+# =====================================================
 # REPORTING
 # =====================================================
 
 @router.post("/posts/{post_id}/report")
 def report_post(post_id: int, data: ReportContent, db: Session = Depends(get_db)):
+    """Report a post"""
     post = forum_repo.report_post(db, post_id, data.reason)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
@@ -217,6 +316,7 @@ def report_post(post_id: int, data: ReportContent, db: Session = Depends(get_db)
 
 @router.post("/responses/{response_id}/report")
 def report_response(response_id: int, data: ReportContent, db: Session = Depends(get_db)):
+    """Report a response"""
     response = forum_repo.report_response(db, response_id, data.reason)
     if not response:
         raise HTTPException(status_code=404, detail="Response not found")

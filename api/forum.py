@@ -3,7 +3,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-
+from datetime import datetime
+from models.user import User
+from models.forum import Post, Response  # ✅ Correct model names
 from core.database import get_db
 from repo import forum_repo
 from schemas.forum import (
@@ -13,11 +15,14 @@ from schemas.forum import (
     ReportContent
 )
 
+
 router = APIRouter(prefix="/forums", tags=["forums"])
+
 
 # =====================================================
 # FORUMS
 # =====================================================
+
 
 @router.get("/", response_model=List[ForumResponse])
 def get_all_forums(db: Session = Depends(get_db)):
@@ -63,9 +68,11 @@ def get_forum_by_id(forum_id: int, db: Session = Depends(get_db)):
         "post_count": forum_repo.get_post_count_for_forum(db, forum.id)
     }
 
+
 # =====================================================
 # POSTS
 # =====================================================
+
 
 @router.post("/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 def create_post(data: PostCreate, db: Session = Depends(get_db)):
@@ -82,10 +89,25 @@ def create_post(data: PostCreate, db: Session = Depends(get_db)):
         is_anonymous=data.is_anonymous
     )
 
+    # Get author information
+    author = db.query(User).filter(User.id == post.author_id).first()
+    
+    # Extract author name (email prefix if no full name)
+    author_name = "Unknown User"
+    if author:
+        if hasattr(author, 'full_name') and author.full_name:
+            author_name = author.full_name
+        elif hasattr(author, 'first_name') and author.first_name:
+            last_name = getattr(author, 'last_name', '')
+            author_name = f"{author.first_name} {last_name}".strip()
+        elif author.email:
+            author_name = author.email.split('@')[0]
+
     return {
         "id": post.id,
         "forum_id": post.forum_id,
         "author_id": post.author_id,
+        "author_name": author_name,
         "title": post.title,
         "content": post.content,
         "is_anonymous": post.is_anonymous,
@@ -98,15 +120,30 @@ def create_post(data: PostCreate, db: Session = Depends(get_db)):
 
 @router.get("/{forum_id}/posts", response_model=List[PostResponse])
 def get_posts_for_forum(forum_id: int, db: Session = Depends(get_db)):
-    """Get all posts for a specific forum"""
+    """Get all posts for a specific forum with author information"""
     posts = forum_repo.get_posts_by_forum(db, forum_id)
 
     result = []
     for post in posts:
+        # Get author information
+        author = db.query(User).filter(User.id == post.author_id).first()
+        
+        # Extract author name (email prefix if no full name)
+        author_name = "Unknown User"
+        if author:
+            if hasattr(author, 'full_name') and author.full_name:
+                author_name = author.full_name
+            elif hasattr(author, 'first_name') and author.first_name:
+                last_name = getattr(author, 'last_name', '')
+                author_name = f"{author.first_name} {last_name}".strip()
+            elif author.email:
+                author_name = author.email.split('@')[0]
+        
         result.append({
             "id": post.id,
             "forum_id": post.forum_id,
             "author_id": post.author_id,
+            "author_name": author_name,
             "title": post.title,
             "content": post.content,
             "is_anonymous": post.is_anonymous,
@@ -141,10 +178,25 @@ def update_post(
         data.content
     )
 
+    # Get author information
+    author = db.query(User).filter(User.id == updated_post.author_id).first()
+    
+    # Extract author name
+    author_name = "Unknown User"
+    if author:
+        if hasattr(author, 'full_name') and author.full_name:
+            author_name = author.full_name
+        elif hasattr(author, 'first_name') and author.first_name:
+            last_name = getattr(author, 'last_name', '')
+            author_name = f"{author.first_name} {last_name}".strip()
+        elif author.email:
+            author_name = author.email.split('@')[0]
+
     return {
         "id": updated_post.id,
         "forum_id": updated_post.forum_id,
         "author_id": updated_post.author_id,
+        "author_name": author_name,
         "title": updated_post.title,
         "content": updated_post.content,
         "is_anonymous": updated_post.is_anonymous,
@@ -172,6 +224,7 @@ def delete_post(post_id: int, user_id: int, db: Session = Depends(get_db)):
 # LIKES - POSTS
 # =====================================================
 
+
 @router.post("/posts/{post_id}/like")
 def toggle_post_like(post_id: int, user_id: int, db: Session = Depends(get_db)):
     """Toggle like on a post"""
@@ -190,9 +243,11 @@ def toggle_post_like(post_id: int, user_id: int, db: Session = Depends(get_db)):
         "message": "Post liked" if liked else "Post unliked"
     }
 
+
 # =====================================================
 # RESPONSES
 # =====================================================
+
 
 @router.post("/responses", response_model=ResponseResponse, status_code=status.HTTP_201_CREATED)
 def create_response(data: ResponseCreate, db: Session = Depends(get_db)):
@@ -205,10 +260,25 @@ def create_response(data: ResponseCreate, db: Session = Depends(get_db)):
         is_anonymous=data.is_anonymous
     )
 
+    # Get author information
+    author = db.query(User).filter(User.id == response.author_id).first()
+    
+    # Extract author name
+    author_name = "Unknown User"
+    if author:
+        if hasattr(author, 'full_name') and author.full_name:
+            author_name = author.full_name
+        elif hasattr(author, 'first_name') and author.first_name:
+            last_name = getattr(author, 'last_name', '')
+            author_name = f"{author.first_name} {last_name}".strip()
+        elif author.email:
+            author_name = author.email.split('@')[0]
+
     return {
         "id": response.id,
         "post_id": response.post_id,
         "author_id": response.author_id,
+        "author_name": author_name,
         "content": response.content,
         "is_anonymous": response.is_anonymous,
         "created_at": response.created_at,
@@ -222,19 +292,35 @@ def get_responses(post_id: int, db: Session = Depends(get_db)):
     """Get all responses for a specific post"""
     responses = forum_repo.get_responses_by_post(db, post_id)
 
-    return [
-        {
+    result = []
+    for r in responses:
+        # Get author information
+        author = db.query(User).filter(User.id == r.author_id).first()
+        
+        # Extract author name
+        author_name = "Unknown User"
+        if author:
+            if hasattr(author, 'full_name') and author.full_name:
+                author_name = author.full_name
+            elif hasattr(author, 'first_name') and author.first_name:
+                last_name = getattr(author, 'last_name', '')
+                author_name = f"{author.first_name} {last_name}".strip()
+            elif author.email:
+                author_name = author.email.split('@')[0]
+        
+        result.append({
             "id": r.id,
             "post_id": r.post_id,
             "author_id": r.author_id,
+            "author_name": author_name,
             "content": r.content,
             "is_anonymous": r.is_anonymous,
             "created_at": r.created_at,
             "updated_at": r.updated_at,
             "like_count": forum_repo.get_response_like_count(db, r.id)
-        }
-        for r in responses
-    ]
+        })
+
+    return result
 
 
 @router.put("/responses/{response_id}", response_model=ResponseResponse)
@@ -254,10 +340,25 @@ def update_response(
 
     updated = forum_repo.update_response(db, response_id, data.content)
 
+    # Get author information
+    author = db.query(User).filter(User.id == updated.author_id).first()
+    
+    # Extract author name
+    author_name = "Unknown User"
+    if author:
+        if hasattr(author, 'full_name') and author.full_name:
+            author_name = author.full_name
+        elif hasattr(author, 'first_name') and author.first_name:
+            last_name = getattr(author, 'last_name', '')
+            author_name = f"{author.first_name} {last_name}".strip()
+        elif author.email:
+            author_name = author.email.split('@')[0]
+
     return {
         "id": updated.id,
         "post_id": updated.post_id,
         "author_id": updated.author_id,
+        "author_name": author_name,
         "content": updated.content,
         "is_anonymous": updated.is_anonymous,
         "created_at": updated.created_at,
@@ -283,6 +384,7 @@ def delete_response(response_id: int, user_id: int, db: Session = Depends(get_db
 # LIKES - RESPONSES
 # =====================================================
 
+
 @router.post("/responses/{response_id}/like")
 def toggle_response_like(response_id: int, user_id: int, db: Session = Depends(get_db)):
     """Toggle like on a response"""
@@ -301,9 +403,11 @@ def toggle_response_like(response_id: int, user_id: int, db: Session = Depends(g
         "message": "Response liked" if liked else "Response unliked"
     }
 
+
 # =====================================================
 # REPORTING
 # =====================================================
+
 
 @router.post("/posts/{post_id}/report")
 def report_post(post_id: int, data: ReportContent, db: Session = Depends(get_db)):

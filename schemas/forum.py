@@ -42,6 +42,7 @@ class PostResponse(BaseModel):
     id: int
     forum_id: int
     author_id: int
+    author_name: str  # Add this field
     title: str
     content: str
     is_anonymous: bool
@@ -49,9 +50,10 @@ class PostResponse(BaseModel):
     updated_at: datetime
     like_count: int
     response_count: int
-    
+
     class Config:
         from_attributes = True
+
 
 # Response Schemas
 class ResponseCreate(BaseModel):

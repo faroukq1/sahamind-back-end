@@ -1,0 +1,83 @@
+# api/volunteer.py
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from typing import List
+import json
+from models.user import User
+from core.database import get_db
+from repo import volunteer_repo
+from schemas.volunteer import VolunteerResponse
+
+
+router = APIRouter(prefix="/volunteers", tags=["volunteers"])
+
+
+@router.get("/", response_model=List[VolunteerResponse])
+def get_all_volunteers(db: Session = Depends(get_db)):
+    """
+    Get all active and available volunteers (limit 5).
+    Only returns volunteers with future or today's availability_date.
+    """
+    volunteers = volunteer_repo.get_all_volunteers(db, limit=5)
+    return volunteers
+
+
+@router.get("/available", response_model=List[VolunteerResponse])
+def get_available_volunteers(db: Session = Depends(get_db)):
+    """
+    Get volunteers available RIGHT NOW.
+    Checks if current time falls within their availability window.
+    Returns up to 5 available volunteers.
+    """
+    volunteers = volunteer_repo.get_available_volunteers(db, limit=5)
+    return volunteers
+
+
+@router.get("/by-emotions/{user_id}", response_model=List[VolunteerResponse])
+def get_volunteers_by_user_emotions(user_id: int, db: Session = Depends(get_db)):
+    """
+    Get volunteers matching the user's emotion keywords and are available.
+    Fetches the user's emotions_kw and returns matching volunteers (limit 5).
+    
+    Args:
+        user_id: ID of the user
+    
+    Returns:
+        List of volunteers whose emotions match user's emotions and are available (up to 5)
+    """
+    
+    # Get the user
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Parse user's emotions
+    try:
+        user_emotions = json.loads(user.emotions_kw) if user.emotions_kw else []
+    except (json.JSONDecodeError, TypeError):
+        user_emotions = []
+    
+    # Get matching volunteers
+    volunteers = volunteer_repo.get_volunteers_by_emotions(db, user_emotions, limit=5)
+    
+    return volunteers
+
+
+@router.get("/{volunteer_id}", response_model=VolunteerResponse)
+def get_volunteer_by_id(volunteer_id: int, db: Session = Depends(get_db)):
+    """
+    Get a single volunteer by ID with their availability details.
+    
+    Args:
+        volunteer_id: Volunteer's user ID
+    
+    Returns:
+        Volunteer details including availability
+    """
+    
+    volunteer = volunteer_repo.get_volunteer_by_id(db, volunteer_id)
+    if not volunteer:
+        raise HTTPException(status_code=404, detail="Volunteer not found")
+    
+    return volunteer

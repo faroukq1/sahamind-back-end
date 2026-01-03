@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Time
 from datetime import datetime
 from core.database import Base
 
@@ -12,5 +12,11 @@ class User(Base):
     role = Column(String, default="patient")
     emotions_kw = Column(String, nullable=False, default="[]")
 
+    # Volunteer availability fields
+    availability_date = Column(DateTime, nullable=True)  # Next available date
+    availability_start_time = Column(Time, nullable=True)  # Start time (HH:MM)
+    availability_end_time = Column(Time, nullable=True)  # End time (HH:MM)
+
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+

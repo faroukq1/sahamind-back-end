@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
 from models.user import User
-from models.forum import Post, Response  # ✅ Correct model names
+from models.forum import Post, Response
 from core.database import get_db
 from repo import forum_repo
 from schemas.forum import (

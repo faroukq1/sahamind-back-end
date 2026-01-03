@@ -3,6 +3,8 @@ from core.database import Base, engine
 from api import auth
 from api import journal
 from api import forum
+from api import volunteer
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -11,6 +13,7 @@ app = FastAPI()
 app.include_router(auth.router)
 app.include_router(journal.router)
 app.include_router(forum.router)
+app.include_router(volunteer.router)
 
 
 

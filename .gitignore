@@ -28,6 +28,7 @@ ENV/
 .env/
 .venv.bak/
 venv.bak/
+.env
 
 # Environment variables & secrets
 .env

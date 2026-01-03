@@ -77,6 +77,30 @@ def get_all_volunteers(db: Session, limit: int = 5):
     return volunteers
 
 
+def get_all_volunteers_paginated(db: Session, skip: int = 0, limit: int = 10):
+    """
+    Get all active volunteers with pagination.
+    
+    Args:
+        db: Database session
+        skip: Number of records to skip (offset)
+        limit: Maximum number of volunteers to return per page
+    
+    Returns:
+        Tuple of (volunteers list, total count)
+    """
+    
+    query = db.query(User).filter(
+        User.role == "volunteer",
+        User.is_active == True,
+    )
+    
+    total = query.count()
+    volunteers = query.offset(skip).limit(limit).all()
+    
+    return volunteers, total
+
+
 def get_available_volunteers(db: Session, limit: int = 5):
     """
     Get all active volunteers that are available right now.

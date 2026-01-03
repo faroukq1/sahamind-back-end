@@ -33,3 +33,13 @@ class VolunteerResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class VolunteerPaginatedResponse(BaseModel):
+    volunteers: List[VolunteerResponse]
+    page: int
+    page_size: int
+    total: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool

@@ -81,6 +81,106 @@ def seed_volunteers():
                 "start_time": time(15, 0),   # 3:00 PM
                 "end_time": time(18, 0),     # 6:00 PM
             },
+            {
+                "email": "michael.brown@volunteer.com",
+                "name": "Michael Brown",
+                "emotions_kw": ["loneliness", "isolation", "social anxiety"],
+                "availability": "Daily, 1:00 PM",
+                "specialty": "Loneliness & Social Connection",
+                "availability_date": today,
+                "start_time": time(13, 0),   # 1:00 PM
+                "end_time": time(16, 0),     # 4:00 PM
+            },
+            {
+                "email": "maria.garcia@volunteer.com",
+                "name": "Maria Garcia",
+                "emotions_kw": ["grief", "loss", "sadness"],
+                "availability": "Tuesday-Saturday, 11:00 AM",
+                "specialty": "Grief & Loss Support",
+                "availability_date": tomorrow,
+                "start_time": time(11, 0),   # 11:00 AM
+                "end_time": time(14, 0),     # 2:00 PM
+            },
+            {
+                "email": "david.kim@volunteer.com",
+                "name": "David Kim",
+                "emotions_kw": ["trauma", "ptsd", "recovery"],
+                "availability": "Monday-Friday, 5:00 PM",
+                "specialty": "Trauma & Recovery",
+                "availability_date": today,
+                "start_time": time(17, 0),   # 5:00 PM
+                "end_time": time(20, 0),     # 8:00 PM
+            },
+            {
+                "email": "rachel.thompson@volunteer.com",
+                "name": "Rachel Thompson",
+                "emotions_kw": ["sleep issues", "insomnia", "anxiety"],
+                "availability": "Daily, 9:00 PM",
+                "specialty": "Sleep & Relaxation",
+                "availability_date": today,
+                "start_time": time(21, 0),   # 9:00 PM
+                "end_time": time(23, 30),    # 11:30 PM
+            },
+            {
+                "email": "carlos.rodriguez@volunteer.com",
+                "name": "Carlos Rodriguez",
+                "emotions_kw": ["relationship issues", "communication", "conflict"],
+                "availability": "Wednesday-Sunday, 12:00 PM",
+                "specialty": "Relationships & Communication",
+                "availability_date": tomorrow,
+                "start_time": time(12, 0),   # 12:00 PM
+                "end_time": time(15, 0),     # 3:00 PM
+            },
+            {
+                "email": "nina.patel@volunteer.com",
+                "name": "Nina Patel",
+                "emotions_kw": ["panic attacks", "fear", "phobias"],
+                "availability": "Monday-Thursday, 8:00 AM",
+                "specialty": "Panic & Phobias",
+                "availability_date": today,
+                "start_time": time(8, 0),    # 8:00 AM
+                "end_time": time(11, 0),     # 11:00 AM
+            },
+            {
+                "email": "tom.anderson@volunteer.com",
+                "name": "Tom Anderson",
+                "emotions_kw": ["low self-esteem", "confidence", "motivation"],
+                "availability": "Daily, 4:00 PM",
+                "specialty": "Self-worth & Motivation",
+                "availability_date": today,
+                "start_time": time(16, 0),   # 4:00 PM
+                "end_time": time(19, 0),     # 7:00 PM
+            },
+            {
+                "email": "sophia.lee@volunteer.com",
+                "name": "Sophia Lee",
+                "emotions_kw": ["depression", "hopelessness", "sadness"],
+                "availability": "Tuesday-Friday, 10:00 AM",
+                "specialty": "Depression & Hope",
+                "availability_date": tomorrow,
+                "start_time": time(10, 0),   # 10:00 AM
+                "end_time": time(13, 0),     # 1:00 PM
+            },
+            {
+                "email": "john.white@volunteer.com",
+                "name": "John White",
+                "emotions_kw": ["burnout", "work stress", "balance"],
+                "availability": "Monday-Wednesday, 7:00 PM",
+                "specialty": "Work-Life Balance",
+                "availability_date": today,
+                "start_time": time(19, 0),   # 7:00 PM
+                "end_time": time(22, 0),     # 10:00 PM
+            },
+            {
+                "email": "olivia.santos@volunteer.com",
+                "name": "Olivia Santos",
+                "emotions_kw": ["anxiety", "worry", "nervousness"],
+                "availability": "Daily, 2:00 PM",
+                "specialty": "Anxiety & Calmness",
+                "availability_date": today,
+                "start_time": time(14, 0),   # 2:00 PM
+                "end_time": time(17, 0),     # 5:00 PM
+            },
         ]
         
         # Create volunteers

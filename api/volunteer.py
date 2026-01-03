@@ -1,13 +1,13 @@
 # api/volunteer.py
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List
 import json
 from models.user import User
 from core.database import get_db
 from repo import volunteer_repo
-from schemas.volunteer import VolunteerResponse
+from schemas.volunteer import VolunteerResponse, VolunteerPaginatedResponse
 
 
 router = APIRouter(prefix="/volunteers", tags=["volunteers"])
@@ -21,6 +21,38 @@ def get_all_volunteers(db: Session = Depends(get_db)):
     """
     volunteers = volunteer_repo.get_all_volunteers(db, limit=5)
     return volunteers
+
+
+@router.get("/paginated", response_model=VolunteerPaginatedResponse)
+def get_all_volunteers_paginated(
+    page: int = Query(1, ge=1, description="Page number starting from 1"),
+    page_size: int = Query(10, ge=1, le=50, description="Number of items per page"),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all active volunteers with pagination.
+    
+    Args:
+        page: Page number (starts at 1)
+        page_size: Number of volunteers per page (default 10, max 50)
+    
+    Returns:
+        Paginated list of volunteers with metadata
+    """
+    skip = (page - 1) * page_size
+    volunteers, total = volunteer_repo.get_all_volunteers_paginated(db, skip=skip, limit=page_size)
+    
+    total_pages = (total + page_size - 1) // page_size  # Ceiling division
+    
+    return {
+        "volunteers": volunteers,
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "total_pages": total_pages,
+        "has_next": page < total_pages,
+        "has_prev": page > 1
+    }
 
 
 @router.get("/available", response_model=List[VolunteerResponse])

@@ -298,15 +298,9 @@ def get_responses(post_id: int, db: Session = Depends(get_db)):
         author = db.query(User).filter(User.id == r.author_id).first()
         
         # Extract author name
-        author_name = "Unknown User"
-        if author:
-            if hasattr(author, 'full_name') and author.full_name:
-                author_name = author.full_name
-            elif hasattr(author, 'first_name') and author.first_name:
-                last_name = getattr(author, 'last_name', '')
-                author_name = f"{author.first_name} {last_name}".strip()
-            elif author.email:
-                author_name = author.email.split('@')[0]
+        author_name = "User"
+        if author and author.email:
+            author_name = author.email.split('@')[0]
         
         result.append({
             "id": r.id,
